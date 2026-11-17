@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://journal_panel.gd" id="1_journal"]
+[ext_resource type="Theme" path="res://farm_ui.tres" id="2_theme"]
+
+[node name="Journal" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_journal")
+
+[node name="Shade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.05, 0.1, 0.075, 0.68)
+
+[node name="Card" type="Panel" parent="."]
+offset_left = 64
+offset_top = 46
+offset_right = 704
+offset_bottom = 454
+
+[node name="Heading" type="Label" parent="Card"]
+offset_left = 28
+offset_top = 14
+theme_override_colors/font_color = Color(1, 0.92, 0.75, 1)
+theme_override_font_sizes/font_size = 34
+text = "Lịch & việc hôm nay"
+
+[node name="Close" type="Button" parent="Card"]
+offset_left = 508
+offset_top = 18
+offset_right = 612
+offset_bottom = 62
+text = "Đóng"
+
+[node name="Summary" type="Label" parent="Card"]
+offset_left = 28
+offset_top = 64
+theme_override_colors/font_color = Color(0.81, 0.88, 0.77, 1)
+
+[node name="Week" type="HBoxContainer" parent="Card"]
+offset_left = 28
+offset_top = 102
+offset_right = 612
+offset_bottom = 166
+theme_override_constants/separation = 8
+
+[node name="Market" type="Label" parent="Card"]
+offset_left = 28
+offset_top = 174
+theme_override_colors/font_color = Color(0.96, 0.81, 0.57, 1)
+theme_override_font_sizes/font_size = 22
+
+[node name="Shop" type="Label" parent="Card"]
+offset_left = 28
+offset_top = 204
+theme_override_colors/font_color = Color(0.81, 0.88, 0.77, 1)
+theme_override_font_sizes/font_size = 22
+
+[node name="Tasks" type="Label" parent="Card"]
+offset_left = 28
+offset_top = 240
+offset_right = 612
+theme_override_font_sizes/font_size = 22
+theme_override_constants/line_spacing = 2
+
+[node name="Sleep" type="Label" parent="Card"]
+offset_left = 28
+offset_top = 378
+theme_override_colors/font_color = Color(0.81, 0.88, 0.77, 1)
+theme_override_font_sizes/font_size = 20
+text = "E ở cửa nhà · Ngủ bất cứ lúc nào"

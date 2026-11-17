@@ -1,0 +1,129 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://garden.gd" id="1_garden"]
+[ext_resource type="PackedScene" path="res://farm_panel.tscn" id="2_panel"]
+[ext_resource type="PackedScene" path="res://journal_panel.tscn" id="3_journal"]
+[ext_resource type="PackedScene" path="res://village_panel.tscn" id="4_village"]
+[ext_resource type="PackedScene" path="res://fishing_panel.tscn" id="5_fishing"]
+[ext_resource type="Shader" path="res://rain.gdshader" id="6_rain"]
+[ext_resource type="Script" path="res://farmhouse.gd" id="7_house"]
+[ext_resource type="Texture2D" path="res://assets/art/32/sickle_cut.png" id="8_sickle"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_Rain"]
+shader = ExtResource("6_rain")
+
+[node name="Garden" type="Node2D"]
+script = ExtResource("1_garden")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+position = Vector2(64, 80)
+
+[node name="Farmhouse" type="Node2D" parent="Ground"]
+visible = false
+script = ExtResource("7_house")
+
+[node name="Features" type="Node2D" parent="Ground"]
+y_sort_enabled = true
+
+[node name="Player" type="Sprite2D" parent="Ground/Features"]
+offset = Vector2(0, -24)
+hframes = 3
+vframes = 4
+
+[node name="Overlay" type="Node2D" parent="Ground"]
+z_index = 1
+
+[node name="SickleCut" type="Sprite2D" parent="Ground/Overlay"]
+visible = false
+texture = ExtResource("8_sickle")
+hframes = 3
+
+[node name="Rain" type="ColorRect" parent="Ground"]
+visible = false
+z_index = 2
+material = SubResource("ShaderMaterial_Rain")
+offset_right = 640
+offset_bottom = 384
+mouse_filter = 2
+
+[node name="Daylight" type="CanvasModulate" parent="."]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Status" type="Label" parent="HUD"]
+offset_left = 64
+offset_top = 6
+offset_right = 704
+theme_override_colors/font_color = Color(1, 0.94, 0.8, 1)
+theme_override_font_sizes/font_size = 26
+
+[node name="Hint" type="Label" parent="HUD"]
+offset_left = 328
+offset_top = 44
+offset_right = 704
+theme_override_colors/font_color = Color(0.83, 0.89, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 2
+
+[node name="Tutorial" type="Label" parent="HUD"]
+offset_left = 380
+offset_top = 10
+offset_right = 704
+theme_override_colors/font_color = Color(1, 0.84, 0.45, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 2
+
+[node name="SeedIcon" type="TextureRect" parent="HUD"]
+offset_left = 64
+offset_top = 44
+offset_right = 96
+offset_bottom = 76
+mouse_filter = 2
+expand_mode = 1
+
+[node name="SeedSelection" type="Label" parent="HUD"]
+offset_left = 102
+offset_top = 46
+theme_override_colors/font_color = Color(0.94, 0.88, 0.71, 1)
+theme_override_font_sizes/font_size = 22
+
+[node name="SaveWarning" type="Label" parent="HUD"]
+visible = false
+offset_left = 540
+offset_top = 10
+offset_right = 704
+theme_override_colors/font_color = Color(1, 0.65, 0.46, 1)
+theme_override_font_sizes/font_size = 22
+text = "Chưa lưu được"
+horizontal_alignment = 2
+
+[node name="FarmPanel" parent="HUD" instance=ExtResource("2_panel")]
+
+[node name="Journal" parent="HUD" instance=ExtResource("3_journal")]
+
+[node name="Area" type="Label" parent="HUD"]
+offset_left = 64
+offset_top = 454
+offset_right = 704
+offset_bottom = 480
+theme_override_colors/font_color = Color(0.83, 0.89, 0.78, 1)
+theme_override_colors/font_shadow_color = Color(0.102, 0.153, 0.129, 1)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+
+[node name="Weather" type="Label" parent="HUD"]
+offset_left = 400
+offset_top = 454
+offset_right = 704
+offset_bottom = 480
+theme_override_colors/font_color = Color(0.90, 0.91, 0.78, 1)
+theme_override_colors/font_shadow_color = Color(0.102, 0.153, 0.129, 1)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="VillagePanel" parent="HUD" instance=ExtResource("4_village")]
+
+[node name="FishingPanel" parent="HUD" instance=ExtResource("5_fishing")]

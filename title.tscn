@@ -1,0 +1,195 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://title.gd" id="1_title"]
+[ext_resource type="Texture2D" path="res://assets/art/32/crops.png" id="2_crops"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_Panel"]
+bg_color = Color(0.14, 0.225, 0.179, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.41, 0.32, 0.22, 1)
+shadow_color = Color(0.06, 0.11, 0.083, 1)
+shadow_size = 6
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_Artwork"]
+bg_color = Color(0.105, 0.175, 0.133, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.34, 0.243, 1)
+
+[sub_resource type="AtlasTexture" id="Atlas_RipeCrop"]
+atlas = ExtResource("2_crops")
+region = Rect2(64, 0, 32, 32)
+filter_clip = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_Button"]
+bg_color = Color(0.168, 0.269, 0.206, 1)
+border_width_bottom = 4
+border_color = Color(0.084, 0.143, 0.112, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_ButtonHover"]
+bg_color = Color(0.22, 0.35, 0.265, 1)
+border_width_bottom = 4
+border_color = Color(0.084, 0.143, 0.112, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_ButtonPressed"]
+bg_color = Color(0.13, 0.205, 0.165, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_Primary"]
+bg_color = Color(0.91, 0.73, 0.45, 1)
+border_width_bottom = 4
+border_color = Color(0.58, 0.37, 0.21, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_PrimaryHover"]
+bg_color = Color(0.98, 0.81, 0.54, 1)
+border_width_bottom = 4
+border_color = Color(0.58, 0.37, 0.21, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_PrimaryPressed"]
+bg_color = Color(0.82, 0.61, 0.35, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_Focus"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.9, 0.7, 1)
+expand_margin_left = 4
+expand_margin_top = 4
+expand_margin_right = 4
+expand_margin_bottom = 4
+
+[sub_resource type="Theme" id="Theme_Title"]
+default_font_size = 26
+Button/colors/font_color = Color(0.98, 0.94, 0.81, 1)
+Button/colors/font_focus_color = Color(0.98, 0.94, 0.81, 1)
+Button/colors/font_hover_color = Color(1, 0.98, 0.9, 1)
+Button/colors/font_pressed_color = Color(0.98, 0.94, 0.81, 1)
+Button/styles/focus = SubResource("StyleBox_Focus")
+Button/styles/hover = SubResource("StyleBox_ButtonHover")
+Button/styles/normal = SubResource("StyleBox_Button")
+Button/styles/pressed = SubResource("StyleBox_ButtonPressed")
+PrimaryButton/base_type = &"Button"
+PrimaryButton/colors/font_color = Color(0.19, 0.14, 0.085, 1)
+PrimaryButton/colors/font_focus_color = Color(0.19, 0.14, 0.085, 1)
+PrimaryButton/colors/font_hover_color = Color(0.19, 0.14, 0.085, 1)
+PrimaryButton/colors/font_pressed_color = Color(0.19, 0.14, 0.085, 1)
+PrimaryButton/styles/hover = SubResource("StyleBox_PrimaryHover")
+PrimaryButton/styles/normal = SubResource("StyleBox_Primary")
+PrimaryButton/styles/pressed = SubResource("StyleBox_PrimaryPressed")
+VBoxContainer/constants/separation = 16
+
+[node name="Title" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_Title")
+script = ExtResource("1_title")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 56
+offset_top = 58
+offset_right = 712
+offset_bottom = 416
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_Panel")
+
+[node name="GameName" type="Label" parent="."]
+layout_mode = 0
+offset_left = 94
+offset_top = 88
+offset_right = 448
+theme_override_colors/font_color = Color(1, 0.92, 0.75, 1)
+theme_override_font_sizes/font_size = 64
+text = "Vườn Nhỏ"
+
+[node name="Goal" type="Label" parent="."]
+layout_mode = 0
+offset_left = 98
+offset_top = 182
+offset_right = 448
+theme_override_colors/font_color = Color(0.81, 0.88, 0.77, 1)
+text = "Một mùa hè về quê."
+
+[node name="Artwork" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 470
+offset_top = 100
+offset_right = 668
+offset_bottom = 348
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_Artwork")
+
+[node name="Cabbage" type="TextureRect" parent="Artwork"]
+layout_mode = 0
+offset_left = 20
+offset_top = 30
+offset_right = 180
+offset_bottom = 190
+mouse_filter = 2
+texture = SubResource("Atlas_RipeCrop")
+expand_mode = 1
+
+[node name="Menu" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 98
+offset_top = 238
+offset_right = 412
+
+[node name="Continue" type="Button" parent="Menu"]
+visible = false
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "Tiếp tục"
+
+[node name="NewGarden" type="Button" parent="Menu"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Vườn mới"
+
+[node name="Confirmation" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 98
+offset_top = 184
+offset_right = 444
+
+[node name="Question" type="Label" parent="Confirmation"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.64, 1)
+theme_override_font_sizes/font_size = 24
+text = "Thay thế vườn đang lưu?"
+
+[node name="Replace" type="Button" parent="Confirmation"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Tạo vườn mới"
+
+[node name="Back" type="Button" parent="Confirmation"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Quay lại"
+
+[node name="SaveMessage" type="Label" parent="."]
+layout_mode = 0
+offset_left = 98
+offset_top = 364
+offset_right = 668
+theme_override_colors/font_color = Color(0.81, 0.88, 0.77, 1)
+theme_override_font_sizes/font_size = 22
+
+[connection signal="pressed" from="Menu/Continue" to="." method="_continue_garden"]
+[connection signal="pressed" from="Menu/NewGarden" to="." method="_request_new_garden"]
+[connection signal="pressed" from="Confirmation/Replace" to="." method="_start_new_garden"]
+[connection signal="pressed" from="Confirmation/Back" to="." method="_cancel_new_garden"]

@@ -1,0 +1,65 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://opening.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="Frame"]
+bg_color = Color(0.074, 0.082, 0.086, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.50, 0.40, 0.27, 1)
+
+[node name="Opening" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture_filter = 1
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.09, 0.12, 0.108, 1)
+
+[node name="Border" type="Panel" parent="."]
+offset_left = 126
+offset_top = 53
+offset_right = 642
+offset_bottom = 313
+theme_override_styles/panel = SubResource("Frame")
+
+[node name="Picture" type="TextureRect" parent="."]
+offset_left = 128
+offset_top = 55
+offset_right = 640
+offset_bottom = 311
+expand_mode = 1
+
+[node name="Chapter" type="Label" parent="."]
+offset_left = 128
+offset_top = 328
+offset_right = 640
+theme_override_colors/font_color = Color(0.99, 0.84, 0.59, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+
+[node name="Caption" type="Label" parent="."]
+offset_left = 75
+offset_top = 372
+offset_right = 693
+theme_override_colors/font_color = Color(0.91, 0.93, 0.85, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Keys" type="Label" parent="."]
+offset_left = 128
+offset_top = 436
+offset_right = 640
+theme_override_colors/font_color = Color(0.68, 0.75, 0.66, 1)
+theme_override_font_sizes/font_size = 18
+text = "E · Cảnh tiếp    Esc · Bỏ qua"
+horizontal_alignment = 1
