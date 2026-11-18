@@ -116,10 +116,6 @@ func _draw() -> void:
 		_paint(phone.x + 12, phone.y + 11, 8, 10, "#9ab5a9")
 	if craft != null:
 		var atlas := preload("res://assets/art/32/summer_craft.png")
-		if day >= SummerCraft.LAN_DAY and craft.lan_reply == 0:
-			var position_px := Vector2(SummerMap.LAN_INSIDE * 32) + Vector2(0, -16)
-			var people := preload("res://assets/art/32/nguoi_hang_xom.png")
-			draw_texture_rect_region(people, Rect2(position_px, Vector2(32, 48)), Rect2(0, 0, 32, 48))
 		if craft.needle:
 			draw_texture_rect_region(atlas, Rect2(Vector2(SummerMap.EMBROIDERY * 32), Vector2(32, 32)), Rect2(224, 0, 32, 32))
 		if craft.tank:

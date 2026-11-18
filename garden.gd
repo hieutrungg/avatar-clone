@@ -88,6 +88,7 @@ var plot_page_edges: Array[ColorRect] = []
 var story_shirt_texture: ImageTexture
 var npc_sprites: Array[Sprite2D] = []
 var npc_cells: Array[Vector2i] = []
+var event_people: Dictionary[Vector2i, Sprite2D] = {}
 var move_destination := Vector2i(-1, -1)
 var market_booth: Sprite2D
 var activity_marker: Tween
@@ -402,8 +403,8 @@ func _tick_clock(delta: float) -> void:
 		if progress.summer_story != null and progress.day == SummerProgress.CITY_LETTER_DAY and progress.minute_of_day == 720 and not progress.summer.read_city_letter:
 			if _in_house():
 				_deliver_city_letter()
-			elif progress.area == GardenProgress.Area.GARDEN and (not step or not step.is_running()):
-				_rebuild_map()
+		_sync_event_people()
+		_update_feedback()
 		if progress.storm_active() and not storm_status.visible:
 			_announce_storm()
 		_update_clock()
@@ -603,6 +604,7 @@ func _rebuild_map() -> void:
 	sickle_cut.hide()
 	npc_sprites.clear()
 	npc_cells.clear()
+	event_people.clear()
 	market_booth = null
 	cart_sprite = null
 	drying_sprites.clear()
@@ -621,6 +623,7 @@ func _rebuild_map() -> void:
 		farmhouse.refresh(progress.arrival, progress.yard_open(), progress.day, progress.summer.craft)
 		player.position = _feet_position(player_cell)
 		area_label.text = "Nhà cũ"
+		_sync_event_people()
 		return
 	_build_ground()
 	if _in_works_site():
@@ -658,6 +661,7 @@ func _rebuild_map() -> void:
 	)
 	if progress.area == GardenProgress.Area.GARDEN and player_cell.x >= 20:
 		area_label.text = "Vườn sau · Góc ao của ông"
+	_sync_event_people()
 
 
 func _show_farm_page(back_field: bool) -> void:
@@ -687,17 +691,17 @@ func _story_farm_hint(cell: Vector2i) -> String:
 		SummerStory.FARM_EXIT: return "E · Về sân gạch"
 		SummerStory.FISHING: return "E · Câu cá bống trong ao"
 		SummerStory.MAI:
-			if progress.day == SummerProgress.MAI_DAY and not progress.summer.met_mai:
-				return "E · Mai đứng bên hàng rào"
+			if _event_npc_present(cell):
+				return "[E] Trò chuyện với Mai"
 		SummerStory.POSTMAN:
-			if progress.day == SummerProgress.CITY_LETTER_DAY and not progress.summer.read_city_letter and progress.minute_of_day >= 720:
-				return "E · Nhận thư từ bưu tá"
+			if _event_npc_present(cell):
+				return "[E] Nhận thư từ bưu tá"
 		SummerStory.GINGER:
 			if progress.day == SummerProgress.RAIN_DAY and not progress.summer_story.done("picked_ginger"):
 				return "E · Hái gừng rừng để nấu cháo"
 		SummerStory.FAMILY_VIEW:
-			if progress.day == SummerProgress.FAMILY_DAY and progress.summer.family_meal and not progress.summer_story.done("family_walk") and progress.minute_of_day >= 900:
-				return "E · Cùng bố mẹ xem đất của ông"
+			if _event_npc_present(cell):
+				return "[E] Cùng bố mẹ xem đất của ông"
 		SummerStory.PUMP, SummerStory.WELL:
 			if progress.summer_available(SummerProgress.PUMP_DAY) and progress.summer.parents_visited:
 				return "E · Kiểm tra máy bơm" if cell == SummerStory.PUMP else "E · Nối ống ra luống"
@@ -847,16 +851,8 @@ func _place_features() -> void:
 			_summer_prop(SummerStory.WELL, 2)
 			if progress.summer_available(SummerProgress.PUMP_DAY):
 				_summer_prop(SummerStory.PUMP, 3)
-			if progress.day == SummerProgress.MAI_DAY and not progress.summer.met_mai:
-				_summer_person(SummerStory.MAI, 0)
 			if not _story_farm_hint(SummerStory.GINGER).is_empty():
 				_add_prop(FESTIVAL_ART, _feet_position(SummerStory.GINGER), TILE_SIZE, 6, 2)
-			if not _story_farm_hint(SummerStory.FAMILY_VIEW).is_empty():
-				_summer_person(SummerStory.FAMILY_VIEW, 0)
-			if progress.day == SummerProgress.WEAVE_DAY and not progress.summer.learned_weaving:
-				_summer_person(SummerMap.HAI_YARD, 0)
-			if not _story_farm_hint(SummerStory.POSTMAN).is_empty():
-				_summer_person(SummerStory.POSTMAN, 1)
 		return
 
 	for footprint in VillageMap.COTTAGES:
@@ -1006,6 +1002,71 @@ func _summer_person(cell: Vector2i, frame: int, tint: Color = Color.WHITE) -> vo
 	person.self_modulate = tint
 
 
+func _event_npc_specs() -> Dictionary:
+	var people := {}
+	if not progress.summer_available(SummerProgress.FIRST_DAY):
+		return people
+	var day := progress.day
+	var minute := progress.minute_of_day
+	var summer := progress.summer
+	var story := progress.summer_story
+	var teaching := story != null and day == SummerProgress.WEAVE_DAY and summer.received_heirlooms and not summer.learned_weaving
+	if _in_village():
+		if not teaching and (day > SummerProgress.LETTER_DAY or (day == SummerProgress.LETTER_DAY and (
+			story == null or (summer.read_letter and minute >= int(SummerProgress.VISIT_WINDOWS[SummerProgress.LETTER_DAY]))
+		))):
+			people[SummerMap.HAI] = [1, Color("#c6b499")]
+		if day >= SummerProgress.MAI_DAY and not (story != null and day == SummerProgress.MAI_DAY and not summer.met_mai and (
+			minute >= int(SummerProgress.VISIT_WINDOWS[SummerProgress.MAI_DAY])
+		)):
+			people[SummerMap.MAI] = [0, Color("#e8c59d")]
+	elif progress.area == GardenProgress.Area.GARDEN:
+		if story != null:
+			if day == SummerProgress.MAI_DAY and not summer.met_mai and minute >= int(SummerProgress.VISIT_WINDOWS[SummerProgress.MAI_DAY]):
+				people[SummerStory.MAI] = [0, Color.WHITE]
+			if day == SummerProgress.CITY_LETTER_DAY and not summer.read_city_letter and minute >= int(SummerProgress.VISIT_WINDOWS[SummerProgress.CITY_LETTER_DAY]):
+				people[SummerStory.POSTMAN] = [1, Color.WHITE]
+			if teaching:
+				people[SummerMap.HAI_YARD] = [0, Color.WHITE]
+			if day == SummerProgress.FAMILY_DAY and summer.family_meal and not summer.family_replied and not story.done("family_walk") and minute >= 900:
+				people[SummerStory.FAMILY_VIEW] = [0, Color.WHITE]
+		if _family_available():
+			people[SummerMap.PARENTS] = [0, Color("#f1c0a4")]
+			people[SummerMap.PARENTS + Vector2i.UP] = [1, Color.WHITE]
+		if _lan_visit_available():
+			people[SummerMap.LAN_VISIT] = [0, Color("#e9c2ac")]
+	elif _in_house() and _lan_visit_available():
+		people[SummerMap.LAN_INSIDE] = [0, Color.WHITE]
+	return people
+
+
+func _event_npc_present(cell: Vector2i) -> bool:
+	return cell != player_cell and cell != move_destination and _event_npc_specs().has(cell)
+
+
+func _sync_event_people() -> void:
+	var wanted := _event_npc_specs()
+	for cell: Vector2i in event_people.keys():
+		if not wanted.has(cell) or cell == player_cell or cell == move_destination:
+			var person := event_people[cell]
+			map_props.erase(person)
+			person.queue_free()
+			event_people.erase(cell)
+	for cell: Vector2i in wanted:
+		if event_people.has(cell) or cell == player_cell or cell == move_destination:
+			continue
+		var spec: Array = wanted[cell]
+		var person := _add_prop(preload("res://assets/art/32/nguoi_hang_xom.png"), _feet_position(cell), PixelArt.CHARACTER_HEIGHT, 2, spec[0])
+		person.self_modulate = spec[1]
+		event_people[cell] = person
+
+
+func _family_available() -> bool:
+	return progress.summer_available(SummerProgress.FAMILY_DAY) and not progress.summer.family_replied and (
+		progress.day > SummerProgress.FAMILY_DAY or progress.minute_of_day >= int(SummerProgress.VISIT_WINDOWS[SummerProgress.FAMILY_DAY])
+	)
+
+
 func _place_summer_features() -> void:
 	if not progress.summer_available(SummerProgress.FIRST_DAY):
 		return
@@ -1030,10 +1091,6 @@ func _place_summer_features() -> void:
 		return
 	if _in_village():
 		_summer_prop(SummerMap.GATE, 10)
-		if progress.day >= SummerProgress.LETTER_DAY:
-			_summer_person(SummerMap.HAI, 1, Color("#c6b499"))
-		if progress.day >= SummerProgress.MAI_DAY:
-			_summer_person(SummerMap.MAI, 0, Color("#e8c59d"))
 		if progress.summer_available(VillageFestival.NOTICE_DAY) and progress.day <= VillageFestival.FAIR_DAY:
 			_summer_prop(FestivalMap.GATE, 10)
 		if progress.day > VillageFestival.FAIR_DAY and summer.festival.wrestling:
@@ -1070,9 +1127,6 @@ func _place_summer_features() -> void:
 			var art_frame: int = [4, 4, 5, 2][index]
 			var prop := _add_prop(QUIET_FARM_ART, _feet_position(cell), TILE_SIZE, 6, art_frame)
 			prop.visible = (summer.festival.gather_mask & (1 << index)) == 0
-	if progress.day >= SummerProgress.FAMILY_DAY and not summer.family_replied:
-		_summer_person(SummerMap.PARENTS, 0, Color("#f1c0a4"))
-		_summer_person(SummerMap.PARENTS + Vector2i.UP, 1)
 	if progress.day >= SummerProgress.BUILD_DAY:
 		for cell in SummerMap.WOOD_TREES:
 			_add_prop(preload("res://assets/art/32/props.png"), _feet_position(cell), 64, 3, 2)
@@ -1291,8 +1345,6 @@ func _place_craft_features() -> void:
 	elif progress.area == GardenProgress.Area.GARDEN:
 		if _ly_available() and progress.day not in [DroughtProgress.LAST, DroughtProgress.RAIN]:
 			_add_prop(CRAFT_ART, _feet_position(SummerMap.LY), TILE_SIZE, 8, 5)
-		if _lan_visit_available():
-			_summer_person(SummerMap.LAN_VISIT, 0, Color("#e9c2ac"))
 		if progress.summer.craft.jar:
 			_add_prop(CRAFT_ART, _feet_position(SummerMap.JAR), TILE_SIZE, 8, 1)
 
@@ -2165,7 +2217,9 @@ func _ly_available() -> bool:
 
 
 func _lan_visit_available() -> bool:
-	return progress.summer_available(SummerCraft.LAN_DAY) and progress.summer.craft.lan_reply == 0
+	return progress.summer_available(SummerCraft.LAN_DAY) and progress.summer.craft.lan_reply == 0 and (
+		progress.day > SummerCraft.LAN_DAY or progress.minute_of_day >= SummerCraft.LAN_VISIT_HOUR
+	)
 
 
 func _is_craft_cell(cell: Vector2i) -> bool:
@@ -2176,10 +2230,10 @@ func _is_craft_cell(cell: Vector2i) -> bool:
 		return cell in [SummerMap.HUONG, SummerMap.CRAFT_STALL] or (progress.day >= SummerCraft.BUYER_DAY and cell == SummerMap.BINH)
 	if _in_house():
 		return (cell == SummerMap.EMBROIDERY and craft.needle) or (cell == SummerMap.AQUARIUM and craft.tank) or (
-			cell == SummerMap.LAN_INSIDE and _lan_visit_available()
+			cell == SummerMap.LAN_INSIDE and _event_npc_present(cell)
 		)
 	if progress.area == GardenProgress.Area.GARDEN:
-		return (cell == SummerMap.LY and _ly_available()) or (cell == SummerMap.LAN_VISIT and _lan_visit_available()) or (
+		return (cell == SummerMap.LY and _ly_available()) or (cell == SummerMap.LAN_VISIT and _event_npc_present(cell)) or (
 			cell == SummerMap.JAR and craft.jar
 		)
 	return false
@@ -2323,8 +2377,8 @@ func _summer_cell(cell: Vector2i) -> bool:
 	if not progress.summer_available(SummerProgress.FIRST_DAY):
 		return false
 	if _in_village():
-		return (_rice_available() and cell in SummerMap.DRYING_RICE) or cell == SummerMap.GATE or (cell == SummerMap.HAI and progress.day >= SummerProgress.LETTER_DAY) or (
-			cell == SummerMap.MAI and progress.day >= SummerProgress.MAI_DAY
+		return (_rice_available() and cell in SummerMap.DRYING_RICE) or cell == SummerMap.GATE or (
+			cell in [SummerMap.HAI, SummerMap.MAI] and _event_npc_present(cell)
 		)
 	if progress.area != GardenProgress.Area.GARDEN:
 		return false
@@ -2334,7 +2388,7 @@ func _summer_cell(cell: Vector2i) -> bool:
 		return true
 	return SummerMap.POND.has_point(cell) or (
 		progress.day >= SummerProgress.WEAVE_DAY and cell in [SummerMap.BAMBOO, SummerMap.HAI_YARD]
-	) or (progress.day >= SummerProgress.FAMILY_DAY and not progress.summer.family_replied and cell in [SummerMap.PARENTS, SummerMap.PARENTS + Vector2i.UP]) or (
+	) or (cell in [SummerMap.PARENTS, SummerMap.PARENTS + Vector2i.UP] and _event_npc_present(cell)) or (
 		progress.day >= SummerProgress.PUMP_DAY and (cell == SummerProgress.WELL_CELL or (
 			cell == SummerMap.PUMP and progress.summer.parents_visited
 		))
@@ -2564,6 +2618,8 @@ func _family_reply(points: int) -> void:
 
 
 func _family_visit() -> void:
+	if not _family_available():
+		return
 	if progress.summer.family_meal and not progress.summer.family_replied:
 		_open_story("Bố mẹ chuẩn bị về", "Mẹ dặn Hoàng nhớ ăn uống đàng hoàng.", "Con ổn mà", _family_reply.bind(5), "Con nhớ nhà", _family_reply.bind(10))
 	elif progress.day == SummerProgress.FAMILY_DAY and progress.minute_of_day < int(SummerProgress.VISIT_WINDOWS[SummerProgress.FAMILY_DAY]):
@@ -2951,6 +3007,7 @@ func _set_player_position(position_in_map: Vector2) -> void:
 func _finish_step(destination: Vector2i) -> void:
 	player_cell = destination
 	move_destination = Vector2i(-1, -1)
+	_sync_event_people()
 	if progress.summer_story != null and progress.day == SummerProgress.MAI_DAY and progress.area == GardenProgress.Area.GARDEN and is_instance_valid(dog):
 		if dog_walk and dog_walk.is_running():
 			dog_walk.kill()
@@ -4119,6 +4176,7 @@ func _on_panel_item(crop_id: String) -> void:
 
 
 func _commit_progress() -> bool:
+	_sync_event_people()
 	_update_status()
 	_update_feedback()
 	return _save_progress()
