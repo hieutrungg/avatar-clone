@@ -208,15 +208,18 @@ func _reset_weave() -> void:
 	weave.resize(64 if mat else 16)
 	weave.fill(-1)
 	heading.text = "Đan nong phơi · 8 × 8" if mat else ("Tự đan rổ tre" if solo else "Đan rổ với Cụ Hai · %d/3" % (stage + 1))
-	instructions.text = "Chọn ô để đổi nan. Ngang hiện sáng, dọc hiện tối." if not solo else "Nhớ mẫu đáy rổ hôm qua. Ba ô đầu làm gợi ý."
+	if mat:
+		instructions.text = "Bấm ô để đan nong 8 × 8 theo mẫu. Có sẵn 16 ô mẫu, mỗi gợi ý mở thêm 8 ô."
+	else:
+		instructions.text = "Chọn ô để đổi nan. Ngang hiện sáng, dọc hiện tối." if not solo else "Nhớ mẫu đáy rổ hôm qua. Ba ô đầu làm gợi ý."
 	placement.hide()
 	sample.show()
 	board.show()
 	sample.columns = 8 if mat else SIDE
 	board.columns = sample.columns
 	var tile := Vector2(28, 30) if mat else Vector2(44, 49)
-	_build_buttons(sample, weave.size(), tile, false)
-	_build_buttons(board, weave.size(), tile, true)
+	_build_buttons(sample, weave.size(), tile, false, 18 if mat else 24)
+	_build_buttons(board, weave.size(), tile, true, 18 if mat else 24)
 	help_button.text = "Gợi ý"
 	help_button.disabled = false
 	help_button.show()
@@ -225,12 +228,13 @@ func _reset_weave() -> void:
 	_update_weave_buttons()
 
 
-func _build_buttons(grid: GridContainer, count: int, extent: Vector2, interactive: bool) -> void:
+func _build_buttons(grid: GridContainer, count: int, extent: Vector2, interactive: bool, font_size := 24) -> void:
 	for child in grid.get_children():
 		grid.remove_child(child)
 		child.queue_free()
 	for index in count:
 		var tile := Button.new()
+		tile.add_theme_font_size_override("font_size", font_size)
 		tile.custom_minimum_size = extent
 		tile.focus_mode = Control.FOCUS_ALL if interactive else Control.FOCUS_NONE
 		if interactive:

@@ -44,7 +44,11 @@ const MARKET_PRICES := {
 	"cabbage_produce": 10, "goby": 8, "trung_ga": 12, "snail": 4, "frog": 8,
 	"white_rice": 15, "rice_bran": 4, "early_corn": 11, "amaranth": 7, "paddy": 6,
 }
-const CARRY_ITEMS := ["worm", "duckweed", "stone", "golden_rat_tooth", "wood_ear", "ground_cherry", "rice_bran", "raw_rice", "noodles", "phu_the", "sweet_root", "potato"]
+const CARRY_ITEMS := [
+	"weed", "worm", "duckweed", "stone", "golden_rat_tooth", "wood_ear", "ground_cherry",
+	"rice_bran", "raw_rice", "noodles", "phu_the", "sweet_root", "potato",
+	"hot_lunch", "cabbage_soup", "frog_porridge", "snail_dish", "sour_soup", "rice_meal", "frog_rice",
+]
 const FOOD := {
 	"phu_the": 30, "weed": 2, "noodles": 30, "sweet_root": 15, "potato": 5, "raw_rice": 2,
 	"hot_lunch": 100, "cabbage_soup": 80, "frog_porridge": 100, "snail_dish": 65,
