@@ -6,6 +6,7 @@ signal sprinkler_finished(index: int)
 signal construction_requested
 signal bamboo_split(thickness: int)
 signal mat_finished(errors: int)
+signal basket_hint_requested
 
 const SIDE := 4
 const PATTERNS := [
@@ -34,6 +35,7 @@ var mat := false
 var story_pipes := false
 var stage := 0
 var hints := 0
+var hint_cells: Array[int] = []
 var total_errors := 0
 var weave: Array[int] = []
 var pipe_cells: Dictionary[Vector2i, bool] = {}
@@ -205,6 +207,7 @@ func open_construction(progress: GardenProgress, feedback := "") -> void:
 
 func _reset_weave() -> void:
 	hints = 0
+	hint_cells.clear()
 	weave.resize(64 if mat else 16)
 	weave.fill(-1)
 	heading.text = "Đan nong phơi · 8 × 8" if mat else ("Tự đan rổ tre" if solo else "Đan rổ với Cụ Hai · %d/3" % (stage + 1))
@@ -220,7 +223,8 @@ func _reset_weave() -> void:
 	var tile := Vector2(28, 30) if mat else Vector2(44, 49)
 	_build_buttons(sample, weave.size(), tile, false, 18 if mat else 24)
 	_build_buttons(board, weave.size(), tile, true, 18 if mat else 24)
-	help_button.text = "Gợi ý"
+	help_button.text = "Gợi ý" if mat else "Gợi ý · 1 tre"
+	help_button.tooltip_text = "" if mat else "Mỗi gợi ý tốn 1 tre. Giữ lại 1 tre để hoàn thành rổ."
 	help_button.disabled = false
 	help_button.show()
 	submit.text = "Hoàn thành" if solo or stage == 2 else "Qua vòng"
@@ -267,15 +271,16 @@ func _update_weave_buttons() -> void:
 		if mat:
 			reveal = index < 16 or index < 16 + hints * 8
 		elif solo:
-			reveal = index in [0, 1, 4] or (hints > 0 and index < 3 + hints * 2)
+			reveal = index in [0, 1, 4] or index in hint_cells
 		else:
-			reveal = stage == 0 or (stage == 1 and index < 8 + hints * 2) or index in [0, 1, 4, 5] or index < hints * 3
+			reveal = stage == 0 or (stage == 1 and index < 8) or index in [0, 1, 4, 5] or index in hint_cells
 		var symbol := "━" if pattern[index] == "1" else "┃"
 		_paint(sample.get_child(index), symbol if reveal else "?", Color("#eac988") if reveal else Color("#7c8674"))
 		var value := weave[index]
 		_paint(board.get_child(index), "·" if value < 0 else ("━" if value == 1 else "┃"),
 			Color("#eac988") if value == 1 else Color("#a68868"))
 	submit.disabled = weave.has(-1)
+	help_button.disabled = hints >= 3 or (not mat and not solo and stage == 0)
 
 
 func _paint(tile: Button, label: String, color: Color) -> void:
@@ -333,10 +338,26 @@ func _has_pipe(cell: Vector2i) -> bool:
 func _help() -> void:
 	if pipe_mode:
 		instructions.text = "Nước đã đến vòi. Có thể lắp cố định." if _pipe_end() in _reachable() else "Nước chưa đến vòi. Hãy nối liền các ô xanh từ giếng đến vòi."
-	else:
-		hints += 1
-		help_button.disabled = hints >= 3
-		_update_weave_buttons()
+	elif not help_button.disabled:
+		if mat:
+			reveal_hint()
+		else:
+			basket_hint_requested.emit()
+
+
+func reveal_hint() -> void:
+	if hints >= 3:
+		return
+	if not mat:
+		var remaining := 3 if solo else 2
+		for index in weave.size():
+			if (sample.get_child(index) as Button).text == "?":
+				hint_cells.append(index)
+				remaining -= 1
+				if remaining == 0:
+					break
+	hints += 1
+	_update_weave_buttons()
 
 
 func _submit() -> void:
@@ -350,7 +371,6 @@ func _submit() -> void:
 		return
 	if pipe_mode:
 		if _pipe_end() in _reachable():
-			hide()
 			sprinkler_finished.emit(placement.selected)
 		return
 	if weave.has(-1):

@@ -581,7 +581,7 @@ func _dog() -> void:
 
 func _start_fishing() -> void:
 	if state.quantity("rod") > 0:
-		fishing.cast(FishCatalog.GOBY, 1.25, 1.65)
+		fishing.cast(FishCatalog.GOBY, 1.25, 1.65, "ao vườn")
 	else:
 		_note("Vớt hết bèo để tìm cần câu ở bờ ao.")
 

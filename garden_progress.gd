@@ -1895,7 +1895,7 @@ func install_sprinkler(index: int) -> bool:
 		return false
 	if index < 0 or index >= SummerProgress.SPRINKLER_CELLS.size():
 		return false
-	if index >= 3 and not summer.received_heirlooms:
+	if index >= 3 and summer_story == null and not summer.received_heirlooms:
 		return false
 	summer.sprinkler = index
 	return true

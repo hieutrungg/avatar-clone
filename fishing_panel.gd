@@ -9,6 +9,7 @@ const REEL_WINDOW := 1.5
 enum Phase { WAITING, BITING, RESULT }
 
 @onready var message: Label = $Card/Message
+@onready var heading: Label = $Card/Heading
 @onready var controls: Label = $Card/Controls
 @onready var fish_icon: TextureRect = $Card/Fish
 @onready var meter: ProgressBar = $Card/Meter
@@ -23,7 +24,8 @@ func _ready() -> void:
 	set_process(false)
 
 
-func cast(species: String, wait := BITE_WAIT, window := REEL_WINDOW) -> void:
+func cast(species: String, wait := BITE_WAIT, window := REEL_WINDOW, location := "bến sông") -> void:
+	heading.text = "Câu cá ở " + location
 	target_species = species
 	phase = Phase.WAITING
 	remaining = wait

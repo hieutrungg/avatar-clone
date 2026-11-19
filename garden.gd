@@ -162,6 +162,7 @@ func _ready() -> void:
 	workshop.construction_requested.connect(_construction_requested)
 	workshop.bamboo_split.connect(_finish_bamboo_split)
 	workshop.mat_finished.connect(_finish_drying_mat)
+	workshop.basket_hint_requested.connect(_buy_basket_hint)
 	festival_panel = FestivalPanel.new()
 	$HUD.add_child(festival_panel)
 	festival_panel.name_saved.connect(_name_chick)
@@ -733,7 +734,7 @@ func _interact_story_farm(cell: Vector2i) -> void:
 		SummerStory.FISHING:
 			if progress.minute_of_day < GardenCalendar.LAST_MINUTE:
 				story_cast = true
-				fishing_panel.cast(FishCatalog.GOBY, 2.0)
+				fishing_panel.cast(FishCatalog.GOBY, 2.0, FishingPanel.REEL_WINDOW, "ao vườn")
 		SummerStory.PUMP:
 			_interact_summer(SummerMap.PUMP)
 		SummerStory.WELL:
@@ -2460,7 +2461,7 @@ func _interact_summer(cell: Vector2i) -> void:
 		if cell == SummerMap.LOTUS:
 			if progress.summer_available(SummerCraft.LOTUS_DAY) and progress.minute_of_day < GardenCalendar.LAST_MINUTE:
 				lotus_cast = true
-				fishing_panel.cast(progress.pond_fish(), 3.0, 4.0)
+				fishing_panel.cast(progress.pond_fish(), 3.0, 4.0, "ao sen")
 				return
 			summer.lotus_seen = true
 			_commit_progress()
@@ -2475,7 +2476,7 @@ func _interact_summer(cell: Vector2i) -> void:
 			return
 		if SummerMap.POND.has_point(cell) and progress.summer_available(SummerProgress.QUIET_DAY):
 			if progress.minute_of_day < GardenCalendar.LAST_MINUTE:
-				fishing_panel.cast(progress.fishing_species(), 22.0, 4.0)
+				fishing_panel.cast(progress.fishing_species(), 22.0, 4.0, "ao vườn")
 			return
 	match cell:
 		SummerMap.GATE:
@@ -2790,9 +2791,30 @@ func _basket_finished(wrong: int, solo: bool) -> void:
 		return
 	_commit_progress()
 	if progress.summer_story != null and not solo and not progress.summer_story.done("tea_hai"):
-		_open_story("Cụ Hai", "Cụ lật chiếc rổ xem rồi nhắc chuyện ông ngoại học đan ngay trên sân gạch. Cụ muốn ngồi lại uống chén trà.", "Mời trà", _tea_with_hai, "Lát nữa", village_panel.hide)
+		var remarks := [
+			"Cho gà ngồi thôi. Nhưng lần đầu ai chả vậy.",
+			"Cũng gọi là rổ. Dùng được. Lần sau làm lại.",
+			"Tạm được. Lần sau chú ý mấy góc hơn.",
+			"Khá. Ông ngoại mày đan xấu hơn nhiều hồi đầu.",
+		]
+		var tier := SummerProgress.BASKETS.find(item)
+		var result := "Nhận %s ×1 · Sai %d ô.\nCụ Hai: “%s”\nCụ muốn uống trà." % [
+			SummerProgress.item_name(item), wrong, remarks[tier],
+		]
+		_open_story("Rổ đầu tiên · " + SummerProgress.item_name(item), result, "Mời trà", _tea_with_hai, "Lát nữa", village_panel.hide)
 	else:
 		village_panel.open_dialogue("Rổ tre", "Đã đan %s. Có thể đem bán ở chợ." % SummerProgress.item_name(item).to_lower())
+
+
+func _buy_basket_hint() -> void:
+	if not workshop.visible or workshop.pipe_mode or workshop.mat or workshop.build_mode or workshop.hints >= 3:
+		return
+	if progress.quantity(SummerProgress.BAMBOO) <= 1:
+		workshop.instructions.text = "Gợi ý cần 1 tre, và cần giữ 1 tre để hoàn thành rổ. Hãy lấy thêm tre."
+		return
+	progress._add_items(SummerProgress.BAMBOO, -1)
+	_commit_progress()
+	workshop.reveal_hint()
 
 
 func _tea_with_hai() -> void:
@@ -2803,9 +2825,12 @@ func _tea_with_hai() -> void:
 
 func _sprinkler_finished(index: int) -> void:
 	if progress.install_sprinkler(index):
+		workshop.hide()
 		_rebuild_map()
 		_commit_progress()
 		village_panel.open_dialogue("Vòi tưới", "Nước đã tới vòi. Các luống trong vùng 3 × 3 quanh vòi sẽ tự đủ ẩm.")
+	else:
+		workshop.instructions.text = "Chưa lắp được vòi. Kiểm tra nguồn điện, ống và vị trí đã mở. Đường ống đang nối vẫn được giữ."
 
 
 func _start_hatching() -> void:
